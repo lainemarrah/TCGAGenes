@@ -107,14 +107,19 @@ cox_assumptions = function(surv, rnaseq){
   prophazards = vector(mode='list', length=length(nonas_models))
   survobj = Surv(surv_rnaseq$times, surv_rnaseq$patient.vital_status)
   for (i in length(nonas_models):1){
-    tbl = cox.zph(nonas_models[[i]])
-    if (is.na(tbl[["table"]][1,3])) {
+    error.status = FALSE
+    tryCatch({tbl = cox.zph(nonas_models[[i]])}, error = function(e) {error.status <<- TRUE}, silent=TRUE)
+    if (error.status==TRUE){
       prophazards[i] = NULL
-    } else if (tbl[["table"]][1,3]>0.05) {
-      prophazards[i] = NULL
-    } else {
-      prophazards[i] = nonas_models[i]
-    }
+    } else{  
+      tbl = cox.zph(nonas_models[[i]])
+      if (is.na(tbl[["table"]][1,3])) {
+        prophazards[i] = NULL
+      } else if (tbl[["table"]][1,3]>0.05) {
+        prophazards[i] = NULL
+      } else {
+        prophazards[i] = nonas_models[i]
+      }
   }
   rm(tbl)
   
