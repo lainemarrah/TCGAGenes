@@ -20,7 +20,7 @@ clinical_list = list(ACC.clinical, BLCA.clinical, BRCA.clinical, CESC.clinical,
                      UCEC.clinical, UCS.clinical, UVM.clinical)
 rnaseq_list = list(ACC.rnaseq, BLCA.rnaseq, BRCA.rnaseq, CESC.rnaseq, 
                      CHOL.rnaseq, COAD.rnaseq, DLBC.rnaseq, ESCA.rnaseq, 
-                     GBM.clinical, GBMLGG.rnaseq, HNSC.rnaseq, KICH.rnaseq,
+                     GBM.rnaseq, GBMLGG.rnaseq, HNSC.rnaseq, KICH.rnaseq,
                      KIPAN.rnaseq, KIRC.rnaseq, KIRP.rnaseq, LAML.rnaseq,
                      LGG.rnaseq, LIHC.rnaseq, LUAD.rnaseq, LUSC.rnaseq,
                      OV.rnaseq, PAAD.rnaseq, PCPG.rnaseq, PRAD.rnaseq,
