@@ -9,6 +9,8 @@ library(survival)
 library(ggfortify)
 set.seed(28898)
 
+args = commandArgs(trailingOnly = TRUE)
+
 clinical_list = list(ACC.clinical, BLCA.clinical, BRCA.clinical, CESC.clinical, 
                      CHOL.clinical, COAD.clinical, DLBC.clinical, ESCA.clinical, 
                      GBM.clinical, GBMLGG.clinical, HNSC.clinical, KICH.clinical,
@@ -19,18 +21,17 @@ clinical_list = list(ACC.clinical, BLCA.clinical, BRCA.clinical, CESC.clinical,
                      STES.clinical, TGCT.clinical, THCA.clinical, THYM.clinical,
                      UCEC.clinical, UCS.clinical, UVM.clinical)
 rnaseq_list = list(ACC.rnaseq, BLCA.rnaseq, BRCA.rnaseq, CESC.rnaseq, 
-                     CHOL.rnaseq, COAD.rnaseq, DLBC.rnaseq, ESCA.rnaseq, 
-                     GBM.rnaseq, GBMLGG.rnaseq, HNSC.rnaseq, KICH.rnaseq,
-                     KIPAN.rnaseq, KIRC.rnaseq, KIRP.rnaseq, LAML.rnaseq,
-                     LGG.rnaseq, LIHC.rnaseq, LUAD.rnaseq, LUSC.rnaseq,
-                     OV.rnaseq, PAAD.rnaseq, PCPG.rnaseq, PRAD.rnaseq,
-                     READ.rnaseq, SARC.rnaseq, SKCM.rnaseq, STAD.rnaseq,
-                     STES.rnaseq, TGCT.rnaseq, THCA.rnaseq, THYM.rnaseq,
-                     UCEC.rnaseq, UCS.rnaseq, UVM.rnaseq)
+                   CHOL.rnaseq, COAD.rnaseq, DLBC.rnaseq, ESCA.rnaseq, 
+                   GBM.rnaseq, GBMLGG.rnaseq, HNSC.rnaseq, KICH.rnaseq,
+                   KIPAN.rnaseq, KIRC.rnaseq, KIRP.rnaseq, LAML.rnaseq,
+                   LGG.rnaseq, LIHC.rnaseq, LUAD.rnaseq, LUSC.rnaseq,
+                   OV.rnaseq, PAAD.rnaseq, PCPG.rnaseq, PRAD.rnaseq,
+                   READ.rnaseq, SARC.rnaseq, SKCM.rnaseq, STAD.rnaseq,
+                   STES.rnaseq, TGCT.rnaseq, THCA.rnaseq, THYM.rnaseq,
+                   UCEC.rnaseq, UCS.rnaseq, UVM.rnaseq)
 studies = read.table("studies.txt")
 
-#positional arg: study name in all caps (like BRCA); can automate this
-args = commandArgs(trailingOnly = TRUE)
+#first arg: study name in all caps (like BRCA); can automate this
 study = args[1]
 clinicaldf = clinical_list[[which(studies==study)]] 
 survivalTCGA(clinicaldf, barcode.name = "patient.bcr_patient_barcode",
@@ -120,9 +121,10 @@ cox_assumptions = function(surv, rnaseq){
       } else {
         prophazards[i] = nonas_models[i]
       }
+      rm(tbl)
+    }
   }
-  rm(tbl)
-  
+ 
   #checking linearity assumption
   linear = vector(mode='list', length=length(prophazards))
   for (i in length(prophazards):1){
@@ -177,11 +179,26 @@ cox_results = function(surv, rnaseq){
     genelist[i] = g
     rm(g)
   }
-  #extracting and organizing significant genes
+  #setting up dataframe with surv
   res_surv = t(as.data.frame(univ_results, check.names = FALSE))
   row.names(res_surv) = genelist
   res_surv = as.data.frame(res_surv)
-  res_survSig = subset(res_surv, p.value < 0.01)
+  res_surv = cbind(res_surv, rep(NA, nrow(res_surv)), rep(study, nrow(res_surv)))
+  colnames(res_surv)[5] = "survival.corr"
+  colnames(res_surv)[6] = "cancer"
+  for(i in 1:nrow(res_surv)){
+   if(res_surv[i,1]<0){
+      #beta < 0 means lower hazard, better survival
+      res_surv[i,5] = "BETTER"
+    } else{
+      #beta > 0 means higher hazard, worse survival
+      res_surv[i,5] = "WORSE"
+    }
+  }
+  #extracting and organizing significant genes
+  #with bonferroni correction for p value
+  bonferronip = 0.05/nrow(res_surv)
+  res_survSig = subset(res_surv, p.value < bonferronip)
   siggenes = res_survSig[order(res_survSig$p.value),]
   return(siggenes)
 }
@@ -192,5 +209,3 @@ filename = paste0(study,"genes.txt")
 write.table(cancergenes, filename)
 
 #cancer info: https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/tcga-study-abbreviations 
-
-
