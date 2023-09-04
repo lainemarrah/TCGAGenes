@@ -29,7 +29,10 @@ rnaseq_list = list(ACC.rnaseq, BLCA.rnaseq, BRCA.rnaseq, CESC.rnaseq,
                    READ.rnaseq, SARC.rnaseq, SKCM.rnaseq, STAD.rnaseq,
                    STES.rnaseq, TGCT.rnaseq, THCA.rnaseq, THYM.rnaseq,
                    UCEC.rnaseq, UCS.rnaseq, UVM.rnaseq)
-studies = read.table("studies.txt")
+studies = data.frame(V1=c("ACC","BLCA", "BRCA", "CESC", "CHOL", "COAD", "ESCA", "GBM", "GBMLGG", 
+                          "HNSC", "KICH", "KIPAN", "KIRC", "KIRP", "LAML", "LGG", "LIHC", "LUAD", 
+                          "LUSC", "OV", "PAAD", "PCPG", "PRAD", "READ", "SARC", "SKCM", "STAD", 
+                          "STES", "TGCT", "THCA", "THYM", "UCEC", "UCS", "UVM"))
 
 #first arg: study name in all caps (like BRCA); can automate this
 study = args[1]
